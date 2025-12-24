@@ -1,9 +1,11 @@
 import { MinusIcon, PlusIcon } from 'lucide-react';
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from '../hooks/useCustomRedux.tsx';
 import {
   calculateTotal,
   clearCart,
   decrease,
+  fetchCartItems,
   increase,
   type CartItemState,
 } from '../redux/slices/cartSlice.ts';
@@ -11,11 +13,24 @@ import { closeModal } from '../redux/slices/modalSlice.ts';
 import { Footer } from '../components/Footer.tsx';
 import { Navbar } from '../components/Navbar.tsx';
 import type { ModalState } from '../redux/slices/modalSlice.ts';
+import { LoadingSpinner } from '../components/LoadingSpinner.tsx';
 
 export const CartItemsPage = () => {
-  const { cartItems } = useSelector((state: { cartItems: CartItemState }) => state.cartItems);
   const dispatch = useDispatch();
   const { isOpen } = useSelector((state: { modal: ModalState }) => state.modal);
+  const { loading, error, cartItems } = useSelector(
+    (state: { cartItems: CartItemState }) => state.cartItems
+  );
+
+  useEffect(() => {
+    dispatch(fetchCartItems());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (error) {
+      alert(error);
+    }
+  }, [error]);
 
   const handleIncrease = (id: string) => {
     dispatch(increase({ id }));
@@ -30,7 +45,11 @@ export const CartItemsPage = () => {
     <section className="w-full max-w-6xl bg-white shadow-lg rounded-lg overflow-hidden flex flex-col">
       <Navbar />
       <div className="flex-1 px-6 py-8 min-h-[200px] overflow-y-auto">
-        {cartItems.length > 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <LoadingSpinner />
+          </div>
+        ) : cartItems.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {cartItems.map((item) => (
               <div key={item.id} className="bg-white rounded-lg shadow-sm p-4">
